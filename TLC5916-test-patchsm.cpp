@@ -18,53 +18,64 @@ int ledOn[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size)
 {
-	hw.ProcessAllControls();
-	for (size_t i = 0; i < size; i++)
-	{
-		OUT_L[i] = IN_L[i];
-		OUT_R[i] = IN_R[i];
+  hw.ProcessAllControls();
+  for (size_t i = 0; i < size; i++)
+  {
+    OUT_L[i] = IN_L[i];
+    OUT_R[i] = IN_R[i];
 
-		uint8_t isTick = tick.Process();
-		if (isTick)
-		{
-			clkState = !clkState;
-			dsy_gpio_write(&clockGpio, clkState);
+    // uint8_t isTick = tick.Process();
+    // if (isTick)
+    // {
 
-			if(clkState) {
-				dsy_gpio_write(&dataGpio, ledOn[clkCount]);
-			} else {
-				dsy_gpio_write(&dataGpio, 0);
-			}
+    // }
+  }
 
-			if(clkState) {
-				if(clkCount == 0) {
-					dsy_gpio_write(&latchGpio, 1);
-				} else {
-					dsy_gpio_write(&latchGpio, 0);
-				}
-				clkCount = (clkCount + 1) % 8;
-			}
-		}
-	}
+  clkState = !clkState;
+  dsy_gpio_write(&clockGpio, clkState);
+
+  if (clkState)
+  {
+    dsy_gpio_write(&dataGpio, ledOn[clkCount]);
+  }
+  else
+  {
+    dsy_gpio_write(&dataGpio, 0);
+  }
+
+  if (clkState)
+  {
+    if (clkCount == 0)
+    {
+      dsy_gpio_write(&latchGpio, 1);
+    }
+    else
+    {
+      dsy_gpio_write(&latchGpio, 0);
+    }
+    clkCount = (clkCount + 1) % 8;
+  }
 }
 
 int main(void)
 {
-	hw.Init();
-	float sampleRate = hw.AudioSampleRate();
-	tick.Init(0.001, sampleRate);
+  hw.Init();
+  float sampleRate = hw.AudioSampleRate();
+  tick.Init(0.001, sampleRate);
 
-	dataGpio.pin = (DaisyPatchSM::C2);
-	dataGpio.mode = DSY_GPIO_MODE_OUTPUT_PP;
-	dataGpio.pull = DSY_GPIO_NOPULL;
+  dataGpio.pin = (DaisyPatchSM::C2);
+  dataGpio.mode = DSY_GPIO_MODE_OUTPUT_PP;
+  dataGpio.pull = DSY_GPIO_NOPULL;
 
-	clockGpio.pin = (DaisyPatchSM::C2);
-	clockGpio.mode = DSY_GPIO_MODE_OUTPUT_PP;
-	clockGpio.pull = DSY_GPIO_NOPULL;
+  clockGpio.pin = (DaisyPatchSM::C2);
+  clockGpio.mode = DSY_GPIO_MODE_OUTPUT_PP;
+  clockGpio.pull = DSY_GPIO_NOPULL;
 
-	hw.SetAudioBlockSize(4); // number of samples handled per callback
-	hw.SetAudioSampleRate(SaiHandle::Config::SampleRate::SAI_48KHZ);
-	hw.StartAudio(AudioCallback);
+  hw.SetAudioBlockSize(4); // number of samples handled per callback
+  hw.SetAudioSampleRate(SaiHandle::Config::SampleRate::SAI_48KHZ);
+  hw.StartAudio(AudioCallback);
 
-	while(1) {}
+  while (1)
+  {
+  }
 }
